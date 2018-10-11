@@ -39,7 +39,6 @@ sapply(dataframe, class) - shows the class of each column in the data frame
 for (i in 1:length(ll)) {print(mean(ll[[i]]))}
 lapply(list,sum)
 
-Hi
 
 
 ```{r setup, include=FALSE}
