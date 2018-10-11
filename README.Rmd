@@ -1,0 +1,67 @@
+---
+title: "README"
+author: "Michael Murphy"
+date: "October 10, 2018"
+output: html_document
+---
+
+str()
+
+col_names()
+
+names(x), dim(x), and class(x), not attr(x, "names"), attr(x, "dim"), and attr(x, "class").
+
+sapply(snp_known, class)
+
+summary() and summarize()
+
+PARSE!!
+
+as.data.frame()
+typeof()
+
+snp_crop <- select(snp_position, SNP_ID, Chromosome, Position)
+snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
+
+
+Type, typeof(), what it is.
+Length, length(), how many elements it contains.
+Attributes, attributes(), additional arbitrary metadata.
+
+
+dim() - returns the dimensions of data frame (i.e. number of rows and number of columns)
+nrow() - number of rows
+ncol() - number of columns
+str() - structure of data frame - name, type and preview of data in each column
+names() - shows the names attribute for a data frame, which gives the column names.
+sapply(dataframe, class) - shows the class of each column in the data frame
+
+for (i in 1:length(ll)) {print(mean(ll[[i]]))}
+lapply(list,sum)
+
+Hi
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
