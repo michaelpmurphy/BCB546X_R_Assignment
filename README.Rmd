@@ -1,56 +1,10 @@
 ---
 title: "README"
 author: "Michael Murphy"
-date: "October 10, 2018"
+date: "October 12, 2018"
 output: html_document
 ---
 
-str()
-
-col_names()
-
-names(x), dim(x), and class(x), not attr(x, "names"), attr(x, "dim"), and attr(x, "class").
-
-sapply(snp_known, class)
-
-summary() and summarize()
-
-PARSE!!
-
-as.data.frame()
-typeof()
-
-snp_crop <- select(snp_position, SNP_ID, Chromosome, Position)
-snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
-
-
-Type, typeof(), what it is.
-Length, length(), how many elements it contains.
-Attributes, attributes(), additional arbitrary metadata.
-
-
-dim() - returns the dimensions of data frame (i.e. number of rows and number of columns)
-nrow() - number of rows
-ncol() - number of columns
-str() - structure of data frame - name, type and preview of data in each column
-names() - shows the names attribute for a data frame, which gives the column names.
-sapply(dataframe, class) - shows the class of each column in the data frame
-
-for (i in 1:length(ll)) {print(mean(ll[[i]]))}
-lapply(list,sum)
-typeof(snp_known$Chromosome)
-
-```{r}
-
-
-levels(sapply(snp_position$Chromosome, factor))
-levels(sapply(snp_known$Chromosome, factor))
-sapply(snp_position, class)
-
-
-
-
-```
 
 ```{r}
 if (!require("tidyverse")) install.packages("tidyverse")
@@ -60,14 +14,33 @@ if (!require("ggplot2")) install.packages("ggplot2")
 library(ggplot2)
 ```
 
+##Data Inspection
+
 ```{r}
 snp_position <- read.delim("~/BCB546X_R_Assignment/data/snp_position.txt", stringsAsFactors=FALSE)
 fang_et_al_genotypes <- read.delim("~/BCB546X_R_Assignment/data/fang_et_al_genotypes.txt")
+
+file.info("data/fang_et_al_genotypes.txt")$size
+class(fang_et_al_genotypes)
+dim(fang_et_al_genotypes)
+str(fang_et_al_genotypes)
+attributes(fang_et_al_genotypes)
+sapply(fang_et_al_genotypes, class)
+summary(fang_et_al_genotypes)
+
+file.info("data/snp_position.txt")$size
+class(snp_position)
+dim(snp_position)
+str(snp_position)
+attributes(snp_position)
+sapply(snp_position, class)
+summary(snp_position)
 
 snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
 snp_known <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
 ```
 
+##Data Processing
 
 ```{r}
 fang_et_al_genotypes_maize <- filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
@@ -153,57 +126,45 @@ write_tsv(filter(teosinte_snps_descending, Chromosome == 9), "results/C9_teosint
 write_tsv(filter(teosinte_snps_descending, Chromosome == 10), "results/C10_teosinte_descending.txt")
 ```
 
-
-
-```{r}
-i <- sapply(maize_snps, is.factor)
-maize_snps[i] <- lapply(maize_snps[i], as.character)
-
-typeof(maize_t)
-
-fang_et_al_genotypes_teosinte <- filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
-filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
-filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
-
-snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
-snp_known_number <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
-snp_known_ascending <- arrange(snp_known_number, Chromosome, Position)
-snp_known_ascending
-```
-
-
-for (i in 1:length(ll)) {file.create()}
+##Data Visualization
 
 ```{r}
-for (i in 1:10) {file.create(results)}
+
+ggplot(data = snp_known) +   geom_bar(mapping = aes(x = Chromosome))
+no_marks <- data.frame(lapply(fang_et_al_genotypes, function(x) {gsub("\\?/\\?", "", x)}), stringsAsFactors = FALSE)
+
+
+no_marks1 <- sapply(filter(no_marks,Group == "ZMMIL"), function(x) length(unique(x)))
+snps1 <- table(as.numeric(no_marks1[-(1:3)]))
+
+snps1
+
+no_marks2 <- sapply(filter(no_marks,Group == "ZMMLR"), function(x) length(unique(x)))
+snps2 <- table(as.numeric(no_marks2[-(1:3)]))
+
+snps2
+
+no_marks3 <- sapply(filter(no_marks,Group == "ZMMMR"), function(x) length(unique(x)))
+snps3 <- table(as.numeric(no_marks3[-(1:3)]))
+
+snps3
+
+x <- data.frame(snps1[3]+snps1[4], snps2[2]+snps2[3],snps3[3]+snps3[4])
+
+colnames(x) <- c("ZMMIL","ZMMLR","ZMMMR") 
+
+y <- rownames_to_column(as.data.frame(t(x)))
+
+colnames(y)[2] <- c("Hetero")
+
+y$newcolumn <- 986
+
+colnames(y)[3] <- c("Total")
+
+z <- mutate(y, Fraction = Hetero / Total)
+z
+
+ggplot(data = z) + 
+  geom_point(mapping = aes(x = (rowname), y = (Fraction)))
+
 ```
-
-
-```{r}
-write.table(snp_known, file = "results/test")
-```
-
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
