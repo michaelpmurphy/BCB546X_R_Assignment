@@ -53,14 +53,62 @@ sapply(snp_position, class)
 ```
 
 ```{r}
-fang_et_al_genotypes_maize <- filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
-fang_et_al_genotypes_teosinte <- filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
-filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
-filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
+if (!require("tidyverse")) install.packages("tidyverse")
+library(tidyverse)
+
+if (!require("ggplot2")) install.packages("ggplot2")
+library(ggplot2)
 ```
 
 
 ```{r}
+snp_position <- read.delim("~/BCB546X_R_Assignment/data/snp_position.txt", stringsAsFactors=FALSE)
+fang_et_al_genotypes <- read.delim("~/BCB546X_R_Assignment/data/fang_et_al_genotypes.txt")
+
+snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
+snp_known <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+
+fang_et_al_genotypes_maize <- filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
+
+maize_cut <- subset(fang_et_al_genotypes_maize, select = -c(JG_OTU,Group))
+
+maize_t <- t(maize_cut)
+colnames(maize_t) <- maize_t[1,]
+maize_t <- rownames_to_column(as.data.frame(maize_t), "SNP_ID")
+maize_t <- maize_t[-1,]
+row.names(maize_t) <- NULL
+
+maize_snps <- inner_join(select(snp_known,"SNP_ID","Chromosome","Position"),maize_t,by = "SNP_ID")
+
+maize_snps_ascending <- arrange(maize_snps, Chromosome, Position)
+
+write_tsv(filter(maize_snps_ascending, Chromosome == 1), "results/C1_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 2), "results/C2_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 3), "results/C3_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 4), "results/C4_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 5), "results/C5_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 6), "results/C6_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 7), "results/C7_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 8), "results/C8_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 9), "results/C9_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 10), "results/C10_maize_ascending.txt")
+
+
+head
+
+
+```
+
+
+```{r}
+
+
+typeof(maize_t)
+
+fang_et_al_genotypes_teosinte <- filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
+filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
+filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
+
 snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
 snp_known_number <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
 snp_known_ascending <- arrange(snp_known_number, Chromosome, Position)
