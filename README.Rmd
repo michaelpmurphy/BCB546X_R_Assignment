@@ -60,14 +60,16 @@ if (!require("ggplot2")) install.packages("ggplot2")
 library(ggplot2)
 ```
 
-
 ```{r}
 snp_position <- read.delim("~/BCB546X_R_Assignment/data/snp_position.txt", stringsAsFactors=FALSE)
 fang_et_al_genotypes <- read.delim("~/BCB546X_R_Assignment/data/fang_et_al_genotypes.txt")
 
 snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
 snp_known <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+```
 
+
+```{r}
 fang_et_al_genotypes_maize <- filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
 
 maize_cut <- subset(fang_et_al_genotypes_maize, select = -c(JG_OTU,Group))
@@ -93,15 +95,69 @@ write_tsv(filter(maize_snps_ascending, Chromosome == 8), "results/C8_maize_ascen
 write_tsv(filter(maize_snps_ascending, Chromosome == 9), "results/C9_maize_ascending.txt")
 write_tsv(filter(maize_snps_ascending, Chromosome == 10), "results/C10_maize_ascending.txt")
 
+maize_snps_replace <- data.frame(lapply(maize_snps, function(x) {gsub("\\?", "-", x)}), stringsAsFactors = FALSE) %>% transform(Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
 
-head
+maize_snps_descending <- arrange(maize_snps_replace, Chromosome, desc(Position))
 
+write_tsv(filter(maize_snps_descending, Chromosome == 1), "results/C1_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 2), "results/C2_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 3), "results/C3_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 4), "results/C4_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 5), "results/C5_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 6), "results/C6_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 7), "results/C7_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 8), "results/C8_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 9), "results/C9_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 10), "results/C10_maize_descending.txt")
+```
 
+```{r}
+fang_et_al_genotypes_teosinte <- filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
+
+teosinte_cut <- subset(fang_et_al_genotypes_maize, select = -c(JG_OTU,Group))
+
+teosinte_t <- t(teosinte_cut)
+colnames(teosinte_t) <- teosinte_t[1,]
+teosinte_t <- rownames_to_column(as.data.frame(teosinte_t), "SNP_ID")
+teosinte_t <- teosinte_t[-1,]
+row.names(teosinte_t) <- NULL
+
+teosinte_snps <- inner_join(select(snp_known,"SNP_ID","Chromosome","Position"),teosinte_t,by = "SNP_ID")
+
+teosinte_snps_ascending <- arrange(teosinte_snps, Chromosome, Position)
+
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 1), "results/C1_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 2), "results/C2_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 3), "results/C3_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 4), "results/C4_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 5), "results/C5_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 6), "results/C6_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 7), "results/C7_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 8), "results/C8_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 9), "results/C9_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 10), "results/C10_teosinte_ascending.txt")
+
+teosinte_snps_replace <- data.frame(lapply(teosinte_snps, function(x) {gsub("\\?", "-", x)}), stringsAsFactors = FALSE) %>% transform(Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+
+teosinte_snps_descending <- arrange(teosinte_snps_replace, Chromosome, desc(Position))
+
+write_tsv(filter(teosinte_snps_descending, Chromosome == 1), "results/C1_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 2), "results/C2_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 3), "results/C3_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 4), "results/C4_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 5), "results/C5_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 6), "results/C6_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 7), "results/C7_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 8), "results/C8_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 9), "results/C9_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 10), "results/C10_teosinte_descending.txt")
 ```
 
 
-```{r}
 
+```{r}
+i <- sapply(maize_snps, is.factor)
+maize_snps[i] <- lapply(maize_snps[i], as.character)
 
 typeof(maize_t)
 
