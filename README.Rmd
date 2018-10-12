@@ -38,7 +38,46 @@ sapply(dataframe, class) - shows the class of each column in the data frame
 
 for (i in 1:length(ll)) {print(mean(ll[[i]]))}
 lapply(list,sum)
+typeof(snp_known$Chromosome)
 
+```{r}
+
+
+levels(sapply(snp_position$Chromosome, factor))
+levels(sapply(snp_known$Chromosome, factor))
+sapply(snp_position, class)
+
+
+
+
+```
+
+```{r}
+fang_et_al_genotypes_maize <- filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
+fang_et_al_genotypes_teosinte <- filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
+filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
+filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
+```
+
+
+```{r}
+snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
+snp_known_number <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+snp_known_ascending <- arrange(snp_known_number, Chromosome, Position)
+snp_known_ascending
+```
+
+
+for (i in 1:length(ll)) {file.create()}
+
+```{r}
+for (i in 1:10) {file.create(results)}
+```
+
+
+```{r}
+write.table(snp_known, file = "results/test")
+```
 
 
 ```{r setup, include=FALSE}
