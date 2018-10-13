@@ -1,7 +1,7 @@
 ---
 title: "README"
 author: "Michael Murphy"
-date: "October 12, 2018"
+date: "October 13, 2018"
 output: html_document
 ---
 
@@ -12,6 +12,9 @@ library(tidyverse)
 
 if (!require("ggplot2")) install.packages("ggplot2")
 library(ggplot2)
+
+if (!require("reshape2")) install.packages("reshape2")
+library(reshape2)
 ```
 
 ##Data Inspection
@@ -128,43 +131,88 @@ write_tsv(filter(teosinte_snps_descending, Chromosome == 10), "results/C10_teosi
 
 ##Data Visualization
 
+**See commit message before continuing**
+
 ```{r}
 
 ggplot(data = snp_known) +   geom_bar(mapping = aes(x = Chromosome))
-no_marks <- data.frame(lapply(fang_et_al_genotypes, function(x) {gsub("\\?/\\?", "", x)}), stringsAsFactors = FALSE)
+ggsave("graphs/SNP_Sites_Per_Chromosome.png")
 
+mvars = colnames(fang_et_al_genotypes)
+mvars <- mvars[-(1:3)]
 
-no_marks1 <- sapply(filter(no_marks,Group == "ZMMIL"), function(x) length(unique(x)))
-snps1 <- table(as.numeric(no_marks1[-(1:3)]))
+fang_char <- fang_et_al_genotypes
+i <- sapply(fang_et_al_genotypes, is.factor)
+fang_char[i] <- lapply(fang_et_al_genotypes[i], as.character)
 
-snps1
+melted_fang <- melt(data = fang_char, id.vars = "Group", measure.vars = mvars)
+melted_char <- melted_fang
+i <- sapply(melted_fang, is.factor)
+melted_char[i] <- lapply(melted_fang[i], as.character)
 
-no_marks2 <- sapply(filter(no_marks,Group == "ZMMLR"), function(x) length(unique(x)))
-snps2 <- table(as.numeric(no_marks2[-(1:3)]))
+melted_blanks <- data.frame(lapply(melted_char, function(x) {gsub("\\?/\\?", "NA", x)}), stringsAsFactors = FALSE)
+melted_known <- filter(melted_blanks,value != "NA")
+colnames(melted_known)[2] <- "SNP_ID"
 
-snps2
+uniq_snps <- melted_known %>% group_by(Group,SNP_ID,add=TRUE) %>%
+  summarize(n_distinct(value))
 
-no_marks3 <- sapply(filter(no_marks,Group == "ZMMMR"), function(x) length(unique(x)))
-snps3 <- table(as.numeric(no_marks3[-(1:3)]))
+uniq_snp_chr <- inner_join(uniq_snps, select(snp_known,"SNP_ID","Chromosome"),by = "SNP_ID")
 
-snps3
+true_snps <- filter(uniq_snp_chr, `n_distinct(value)`>1)
+group_snps <- count(true_snps,Group) %>% arrange(desc(n))
+colnames(group_snps)[2] <- "SNP_Sites"
 
-x <- data.frame(snps1[3]+snps1[4], snps2[2]+snps2[3],snps3[3]+snps3[4])
+ggplot(data = true_snps) +   geom_bar(mapping = aes(x = Chromosome))
+ggsave("graphs/Group_SNPs_Per_Chromosome.png")
 
-colnames(x) <- c("ZMMIL","ZMMLR","ZMMMR") 
-
-y <- rownames_to_column(as.data.frame(t(x)))
-
-colnames(y)[2] <- c("Hetero")
-
-y$newcolumn <- 986
-
-colnames(y)[3] <- c("Total")
-
-z <- mutate(y, Fraction = Hetero / Total)
-z
-
-ggplot(data = z) + 
-  geom_point(mapping = aes(x = (rowname), y = (Fraction)))
-
+write.table(group_snps, file = "graphs/SNPs_Per_Group.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+group_snps
 ```
+
+
+```{r}
+Homozygous <- filter(melted_blanks, value %in% c("A/A", "C/C", "G/G", "T/T")) %>% mutate(Zygous = "Homozygous")
+
+Heterozygous <- filter(melted_blanks, value %in% c("A/C", "A/G", "A/T", "C/G", "C/T", "G/T")) %>% mutate(Zygous = "Heterozygous")
+
+Missing <- filter(melted_blanks, value == "NA") %>% mutate(Zygous = "NA")
+
+Merged_Zygous <- rbind(Homozygous, Heterozygous, Missing) %>% arrange(Group)
+
+ggplot(data = Merged_Zygous) + geom_bar(mapping = aes(x = Group, fill = Zygous), position = "fill")
+ggsave("graphs/Homo-Hetero_Proportion_by_Group.png")
+
+x = c("ZMMIL", "ZMMLR", "ZMMMR", "ZMPBA", "ZMPIL", "ZMPJA")
+y = c("maize", "maize", "maize", "teosinte", "teosinte", "teosinte")
+species_map <- tibble(x,y)
+colnames(species_map) <- c("Group","Species")
+
+Merged_Species = inner_join(Merged_Zygous, species_map,by = "Group")
+Merged_Species <- arrange(Merged_Species, Species, Group)
+
+ggplot(data = Merged_Species) + geom_bar(mapping = aes(x = Species, fill = Zygous))
+ggsave("graphs/Homo-Hetero_Number_by_Species.png")
+```
+
+
+The aspect of the dataset I've chosen to visualize below is the average number of heterozygous alleles per sample, per active SNP site, exhibited by each group.  The previous data from "group_snps" already showed the number of SNP active sites for each group, but focusing on the number of alleles will indicate how variable the groups tend to be at each SNP site. Specifically, it will express the likelihood that a given sample will be heterozygous at any one of its group's active SNP sites.
+
+
+```{r}
+group_samples <- count(fang_char,Group) %>% arrange(desc(n))
+colnames(group_samples)[2] <- "Samples"
+
+group_alleles <- count(Heterozygous,Group) %>% arrange(desc(n))
+colnames(group_alleles)[2] <- "Hetero_Alleles"
+
+group_stats <- inner_join(group_snps, group_samples, by = "Group") %>% inner_join(group_alleles, by = "Group") %>% mutate(Hetero_Pct = Hetero_Alleles / Samples / SNP_Sites * 100)
+
+group_graph <- inner_join(select(true_snps, "Group"), group_stats, by = "Group") %>% arrange(Hetero_Pct)
+
+ggplot(data = group_graph) +   geom_bar(mapping = aes(x = Group)) + geom_point(mapping = aes(x = Group, y = 0, size = Hetero_Pct, color = Hetero_Pct))
+ggsave("graphs/Hetero_Pct_by_Group.png")
+```
+
+
+
