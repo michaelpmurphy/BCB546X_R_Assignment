@@ -1,0 +1,263 @@
+---
+title: "Kohlhase Review"
+author: "Daniel Kohlhase"
+date: "10/15/2018"
+output: html_document
+---
+
+## Kohlhase Review Overview
+Good job! 
+
+I made my comments in the blocks of r code to try and 
+make them easier to read/identify if you download this 
+markdown and view it in RStudio.
+
+Small errors (import and column name) near the beginning 
+of the script and a few comments on the graphs.
+
+```{r}
+if (!require("tidyverse")) install.packages("tidyverse")
+library(tidyverse)
+
+if (!require("ggplot2")) install.packages("ggplot2")
+library(ggplot2)
+
+if (!require("reshape2")) install.packages("reshape2")
+library(reshape2)
+```
+
+##Data Inspection
+
+```{r}
+# COMMENT:  Ran into a problem loading the files. These file locations are based on an
+#           assumption of where I cloned the repository. I would either make some clear
+#           instructions of where to put the repository on a local device or just pull
+#           the files directly from Github. Here is an example command:
+# SNP <- read_tsv("https://raw.githubusercontent.com/dkohlhase/BCB546X_R_Assignment/master/snp_position.txt")
+
+#snp_position <- read.delim("~/BCB546X_R_Assignment/data/snp_position.txt", stringsAsFactors=FALSE)
+snp_position <- read_tsv("https://raw.githubusercontent.com/dkohlhase/BCB546X_R_Assignment/master/snp_position.txt")
+#fang_et_al_genotypes <- read.delim("~/BCB546X_R_Assignment/data/fang_et_al_genotypes.txt")
+fang_et_al_genotypes <- read_tsv("https://raw.githubusercontent.com/dkohlhase/BCB546X_R_Assignment/master/fang_et_al_genotypes.txt")
+
+file.info("data/fang_et_al_genotypes.txt")$size
+class(fang_et_al_genotypes)
+dim(fang_et_al_genotypes)
+str(fang_et_al_genotypes)
+attributes(fang_et_al_genotypes)
+sapply(fang_et_al_genotypes, class)
+summary(fang_et_al_genotypes)
+
+file.info("data/snp_position.txt")$size
+class(snp_position)
+dim(snp_position)
+str(snp_position)
+attributes(snp_position)
+sapply(snp_position, class)
+summary(snp_position)
+
+snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
+snp_known <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+colnames(snp_known)[1] <- "SNP_ID"
+```
+
+##Data Processing
+
+```{r}
+fang_et_al_genotypes_maize <- filter(fang_et_al_genotypes, Group %in% c("ZMMIL", "ZMMLR", "ZMMMR"))
+
+maize_cut <- subset(fang_et_al_genotypes_maize, select = -c(JG_OTU,Group))
+
+maize_t <- t(maize_cut)
+colnames(maize_t) <- maize_t[1,]
+maize_t <- rownames_to_column(as.data.frame(maize_t), "SNP_ID")
+maize_t <- maize_t[-1,]
+row.names(maize_t) <- NULL
+
+# COMMENT:  I recieved the following error:
+#             Error: Unknown column `SNP_ID` 
+#
+# Looking at the 'snp_known' file, it appears the SNP_ID column is
+# labeled as 'X.SNP_ID'. To fix the error I added the following to
+# line 61: 
+#   > colnames(snp_known)[1] <- "SNP_ID"
+
+maize_snps <- inner_join(select(snp_known,"SNP_ID","Chromosome","Position"),maize_t,by = "SNP_ID")
+
+maize_snps_ascending <- arrange(maize_snps, Chromosome, Position)
+
+write_tsv(filter(maize_snps_ascending, Chromosome == 1), "results/C1_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 2), "results/C2_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 3), "results/C3_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 4), "results/C4_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 5), "results/C5_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 6), "results/C6_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 7), "results/C7_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 8), "results/C8_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 9), "results/C9_maize_ascending.txt")
+write_tsv(filter(maize_snps_ascending, Chromosome == 10), "results/C10_maize_ascending.txt")
+
+maize_snps_replace <- data.frame(lapply(maize_snps, function(x) {gsub("\\?", "-", x)}), stringsAsFactors = FALSE) %>% transform(Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+
+maize_snps_descending <- arrange(maize_snps_replace, Chromosome, desc(Position))
+
+write_tsv(filter(maize_snps_descending, Chromosome == 1), "results/C1_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 2), "results/C2_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 3), "results/C3_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 4), "results/C4_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 5), "results/C5_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 6), "results/C6_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 7), "results/C7_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 8), "results/C8_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 9), "results/C9_maize_descending.txt")
+write_tsv(filter(maize_snps_descending, Chromosome == 10), "results/C10_maize_descending.txt")
+```
+
+```{r}
+fang_et_al_genotypes_teosinte <- filter(fang_et_al_genotypes, Group %in% c("ZMPBA", "ZMPIL", "ZMPJA"))
+
+teosinte_cut <- subset(fang_et_al_genotypes_maize, select = -c(JG_OTU,Group))
+
+teosinte_t <- t(teosinte_cut)
+colnames(teosinte_t) <- teosinte_t[1,]
+teosinte_t <- rownames_to_column(as.data.frame(teosinte_t), "SNP_ID")
+teosinte_t <- teosinte_t[-1,]
+row.names(teosinte_t) <- NULL
+
+teosinte_snps <- inner_join(select(snp_known,"SNP_ID","Chromosome","Position"),teosinte_t,by = "SNP_ID")
+
+teosinte_snps_ascending <- arrange(teosinte_snps, Chromosome, Position)
+
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 1), "results/C1_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 2), "results/C2_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 3), "results/C3_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 4), "results/C4_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 5), "results/C5_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 6), "results/C6_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 7), "results/C7_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 8), "results/C8_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 9), "results/C9_teosinte_ascending.txt")
+write_tsv(filter(teosinte_snps_ascending, Chromosome == 10), "results/C10_teosinte_ascending.txt")
+
+teosinte_snps_replace <- data.frame(lapply(teosinte_snps, function(x) {gsub("\\?", "-", x)}), stringsAsFactors = FALSE) %>% transform(Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+
+teosinte_snps_descending <- arrange(teosinte_snps_replace, Chromosome, desc(Position))
+
+write_tsv(filter(teosinte_snps_descending, Chromosome == 1), "results/C1_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 2), "results/C2_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 3), "results/C3_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 4), "results/C4_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 5), "results/C5_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 6), "results/C6_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 7), "results/C7_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 8), "results/C8_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 9), "results/C9_teosinte_descending.txt")
+write_tsv(filter(teosinte_snps_descending, Chromosome == 10), "results/C10_teosinte_descending.txt")
+```
+
+##Data Visualization
+
+**See commit message before continuing**
+
+```{r}
+
+ggplot(data = snp_known) +   geom_bar(mapping = aes(x = Chromosome))
+ggsave("graphs/SNP_Sites_Per_Chromosome.png")
+
+# COMMENT:  The first graph, while technically correct, could be improved by 
+#           changing the x-axis text/ticks so each chromosome is labeled. 
+#           This could be done different ways but my initial reaction was to
+#           read 'Chromosome' as.factor and then renaming the x-axis label.
+#
+#   ggplot(data = snp_known) +   geom_bar(mapping = aes(x = as.factor(Chromosome))) + xlab("Chromosome")
+
+mvars = colnames(fang_et_al_genotypes)
+mvars <- mvars[-(1:3)]
+
+fang_char <- fang_et_al_genotypes
+i <- sapply(fang_et_al_genotypes, is.factor)
+fang_char[i] <- lapply(fang_et_al_genotypes[i], as.character)
+
+melted_fang <- melt(data = fang_char, id.vars = "Group", measure.vars = mvars)
+melted_char <- melted_fang
+i <- sapply(melted_fang, is.factor)
+melted_char[i] <- lapply(melted_fang[i], as.character)
+
+melted_blanks <- data.frame(lapply(melted_char, function(x) {gsub("\\?/\\?", "NA", x)}), stringsAsFactors = FALSE)
+melted_known <- filter(melted_blanks,value != "NA")
+colnames(melted_known)[2] <- "SNP_ID"
+
+uniq_snps <- melted_known %>% group_by(Group,SNP_ID,add=TRUE) %>%
+  summarize(n_distinct(value))
+
+uniq_snp_chr <- inner_join(uniq_snps, select(snp_known,"SNP_ID","Chromosome"),by = "SNP_ID")
+
+true_snps <- filter(uniq_snp_chr, `n_distinct(value)`>1)
+group_snps <- count(true_snps,Group) %>% arrange(desc(n))
+colnames(group_snps)[2] <- "SNP_Sites"
+
+ggplot(data = true_snps) +   geom_bar(mapping = aes(x = Chromosome))
+ggsave("graphs/Group_SNPs_Per_Chromosome.png")
+
+# COMMENT:  There is no distinction between 'Groups'. Adding a 'fill'
+#           option to the aes() command will help identify the 'Groups'
+#
+#   ggplot(data = true_snps) +  geom_bar(mapping = aes(x = Chromosome, fill = Group))
+
+write.table(group_snps, file = "graphs/SNPs_Per_Group.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+group_snps
+```
+
+
+```{r}
+Homozygous <- filter(melted_blanks, value %in% c("A/A", "C/C", "G/G", "T/T")) %>% mutate(Zygous = "Homozygous")
+
+Heterozygous <- filter(melted_blanks, value %in% c("A/C", "A/G", "A/T", "C/G", "C/T", "G/T")) %>% mutate(Zygous = "Heterozygous")
+
+Missing <- filter(melted_blanks, value == "NA") %>% mutate(Zygous = "NA")
+
+Merged_Zygous <- rbind(Homozygous, Heterozygous, Missing) %>% arrange(Group)
+
+ggplot(data = Merged_Zygous) + geom_bar(mapping = aes(x = Group, fill = Zygous), position = "fill")
+ggsave("graphs/Homo-Hetero_Proportion_by_Group.png")
+
+x = c("ZMMIL", "ZMMLR", "ZMMMR", "ZMPBA", "ZMPIL", "ZMPJA")
+y = c("maize", "maize", "maize", "teosinte", "teosinte", "teosinte")
+species_map <- tibble(x,y)
+colnames(species_map) <- c("Group","Species")
+
+Merged_Species = inner_join(Merged_Zygous, species_map,by = "Group")
+Merged_Species <- arrange(Merged_Species, Species, Group)
+
+ggplot(data = Merged_Species) + geom_bar(mapping = aes(x = Species, fill = Zygous))
+ggsave("graphs/Homo-Hetero_Number_by_Species.png")
+```
+
+
+The aspect of the dataset I've chosen to visualize below is the average number of heterozygous alleles per sample, per active SNP site, exhibited by each group.  The previous data from "group_snps" already showed the number of SNP active sites for each group, but focusing on the number of alleles will indicate how variable the groups tend to be at each SNP site. Specifically, it will express the likelihood that a given sample will be heterozygous at any one of its group's active SNP sites.
+
+
+```{r}
+group_samples <- count(fang_char,Group) %>% arrange(desc(n))
+colnames(group_samples)[2] <- "Samples"
+
+group_alleles <- count(Heterozygous,Group) %>% arrange(desc(n))
+colnames(group_alleles)[2] <- "Hetero_Alleles"
+
+group_stats <- inner_join(group_snps, group_samples, by = "Group") %>% inner_join(group_alleles, by = "Group") %>% mutate(Hetero_Pct = Hetero_Alleles / Samples / SNP_Sites * 100)
+
+group_graph <- inner_join(select(true_snps, "Group"), group_stats, by = "Group") %>% arrange(Hetero_Pct)
+
+ggplot(data = group_graph) +   geom_bar(mapping = aes(x = Group)) + geom_point(mapping = aes(x = Group, y = 0, size = Hetero_Pct, color = Hetero_Pct))
+ggsave("graphs/Hetero_Pct_by_Group.png")
+
+# COMMENT:  I like the idea of this graph! I would suggest changing how the graph is presented.
+#           Specifically I would remove the points on the x-axis and simply have 'Hetero_Pct' as
+#           the variable for the 'fill' option. From my understanding of what you are trying to 
+#           convey, this shows the same thing but in a way that is easier to visualize.
+#
+#   ggplot(data = group_graph) +  geom_bar(mapping = aes(x = Group, fill = Hetero_Pct))
+
+```
+
+
