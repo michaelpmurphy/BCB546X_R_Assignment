@@ -1,0 +1,17 @@
+## Data inspection
+
+Data inspection files run pretty well at the start. There were a few errors at the ending part which I have highlighted in red.
+
+snp_known <- filter(snp_position, Chromosome != "multiple", Chromosome != "unknown", Position != "multiple")
+snp_known <- transform(snp_known, Chromosome = as.numeric(Chromosome), Position = as.numeric(Position))
+
+
+##Data processing
+
+I couldn’t run some of the codes at the later part. May be the problem is from my computer.
+
+##Data visualization
+
+Data visualization was good. On the whole, I think it is a good output just that I couldn’t run some the codes on my PC. 
+I think you need to write the codes that needed to be downloaded first to make it easy to read in case someone takes the file. 
+Good work!
