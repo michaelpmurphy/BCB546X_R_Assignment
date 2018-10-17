@@ -35,6 +35,8 @@ library(reshape2)
 #           the files directly from Github. Here is an example command:
 # SNP <- read_tsv("https://raw.githubusercontent.com/dkohlhase/BCB546X_R_Assignment/master/snp_position.txt")
 
+###MPMURPHY COMMENTS > Ah yes, I pulled the source files from a local folder on my computer (where I'd originally saved the files for the Unix assignment).  I should have pulled them directly from the GitHub repository to make my code reproducible on other machines.
+
 #snp_position <- read.delim("~/BCB546X_R_Assignment/data/snp_position.txt", stringsAsFactors=FALSE)
 snp_position <- read_tsv("https://raw.githubusercontent.com/dkohlhase/BCB546X_R_Assignment/master/snp_position.txt")
 #fang_et_al_genotypes <- read.delim("~/BCB546X_R_Assignment/data/fang_et_al_genotypes.txt")
@@ -81,6 +83,7 @@ row.names(maize_t) <- NULL
 # labeled as 'X.SNP_ID'. To fix the error I added the following to
 # line 61: 
 #   > colnames(snp_known)[1] <- "SNP_ID"
+###MPMURPHY COMMENTS > That appears to be a relic of the specific `snp_position` file you pulled from your repository. The original file had the column name `SNP_ID` so I never had to modify it in my files.
 
 maize_snps <- inner_join(select(snp_known,"SNP_ID","Chromosome","Position"),maize_t,by = "SNP_ID")
 
@@ -170,6 +173,7 @@ ggsave("graphs/SNP_Sites_Per_Chromosome.png")
 #           read 'Chromosome' as.factor and then renaming the x-axis label.
 #
 #   ggplot(data = snp_known) +   geom_bar(mapping = aes(x = as.factor(Chromosome))) + xlab("Chromosome")
+###MPMURPHY COMMENTS > You're right, that does make the graph easier to read!
 
 mvars = colnames(fang_et_al_genotypes)
 mvars <- mvars[-(1:3)]
@@ -203,6 +207,7 @@ ggsave("graphs/Group_SNPs_Per_Chromosome.png")
 #           option to the aes() command will help identify the 'Groups'
 #
 #   ggplot(data = true_snps) +  geom_bar(mapping = aes(x = Chromosome, fill = Group))
+###MPMURPHY COMMENTS > I really like that suggestion!!!  Originally I was envisioning just counting the number of true SNPs on each chromosome (i.e. multiplying each SNP site by the number of groups that showed heterozygosity at that site) without differentiating by group, and then breaking down the TOTAL contribution from each group in the accompanying table.  But adding the group fill to the graph itself is a very nice touch!
 
 write.table(group_snps, file = "graphs/SNPs_Per_Group.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
 group_snps
@@ -257,7 +262,7 @@ ggsave("graphs/Hetero_Pct_by_Group.png")
 #           convey, this shows the same thing but in a way that is easier to visualize.
 #
 #   ggplot(data = group_graph) +  geom_bar(mapping = aes(x = Group, fill = Hetero_Pct))
-
+###MPMURPHY COMMENTS > Absolutely, that's exactly how I'd wanted to make it look to begin with!! I simply didn't realize it was possible to use the `fill` option for a variable whose value was constant within each bar. Thanks!!
 ```
 
 
