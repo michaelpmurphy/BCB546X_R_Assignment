@@ -35,7 +35,7 @@ library(reshape2)
 #           the files directly from Github. Here is an example command:
 # SNP <- read_tsv("https://raw.githubusercontent.com/dkohlhase/BCB546X_R_Assignment/master/snp_position.txt")
 
-###MPMURPHY COMMENTS > Ah yes, I pulled the source files from a local folder on my computer (where I'd originally saved the files for the Unix assignment).  I should have pulled them directly from the GitHub repository to make my code reproducible on other machines.
+###MPMURPHY COMMENTS > Ugh, I placed the source files in a data folder in my project directory... and then forgot to add the data folder to my git repository. Very frustrating oversight!
 
 #snp_position <- read.delim("~/BCB546X_R_Assignment/data/snp_position.txt", stringsAsFactors=FALSE)
 snp_position <- read_tsv("https://raw.githubusercontent.com/dkohlhase/BCB546X_R_Assignment/master/snp_position.txt")
